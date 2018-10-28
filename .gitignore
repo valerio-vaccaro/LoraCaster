@@ -1,0 +1,6 @@
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+.src/ttn_config.h
+*.pyc

@@ -1,0 +1,22 @@
+/*===================================================================================*
+  :::         ...    :::::::..    :::.       .,-:::::   :::.     .::::::.::::::::::::
+  ;;;      .;;;;;;;. ;;;;``;;;;   ;;`;;    ,;;;'````'   ;;`;;   ;;;`    `;;;;;;;;''''
+  [[[     ,[[     [[,[[[,/[[['  ,[[ '[[,  [[[         ,[[ '[[, '[==/[[[[,    [[
+  $$'     $$$,     $$$$$$$$$c   c$$$cc$$$c $$$        c$$$cc$$$c  '''    $    $$
+ o88oo,.__"888,_ _,88P888b "88bo,888   888,`88bo,__,o, 888   888,88b    dP    88,
+ """"YUMMM  "YMMMMMP" MMMM   "W" YMM   ""`   "YUMMMMMP"YMM   ""`  "YMmMY"     MMM
+ *===================================================================================*
+  LoraCast - ttn configurations
+   MIT License - Copyright (c) 2018 Valerio Vaccaro
+   Based on https://github.com/gonzalocasas/arduino-uno-dragino-lorawan/blob/master/LICENSE
+   Based on examples from https://github.com/matthijskooijman/arduino-lmic
+ *===================================================================================*/
+
+// TTN configurations
+static u1_t NWKSKEY[16] = { ... };  // Paste here the key in MSB format
+static u1_t APPSKEY[16] = { ... };  // Paste here the key in MSB format
+static u4_t DEVADDR = 0x...;   // Put here the device id in hexadecimal form.
+
+void os_getArtEui (u1_t* buf) { }
+void os_getDevEui (u1_t* buf) { }
+void os_getDevKey (u1_t* buf) { }

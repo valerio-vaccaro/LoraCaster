@@ -1,0 +1,52 @@
+{
+    "description": "Arduino port of the LMIC (LoraWAN-in-C, formerly LoraMAC-in-C) framework provided by IBM.", 
+    "repository": {
+        "url": "https://github.com/matthijskooijman/arduino-lmic", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "espressif8266", 
+        "intel_arc32", 
+        "microchippic32", 
+        "nordicnrf51", 
+        "teensy", 
+        "timsp430"
+    ], 
+    "export": {
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ], 
+        "include": null
+    }, 
+    "authors": [
+        {
+            "maintainer": false, 
+            "name": "IBM", 
+            "url": null, 
+            "email": null
+        }, 
+        {
+            "maintainer": true, 
+            "name": "Matthijs Kooijman", 
+            "url": null, 
+            "email": "matthijs@stdin.nl"
+        }
+    ], 
+    "keywords": [
+        "communication"
+    ], 
+    "id": 852, 
+    "name": "LMIC-Arduino", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "1.5.0+arduino-2", 
+    "homepage": null
+}
