@@ -2,5 +2,5 @@
 .piolibdeps
 .clang_complete
 .gcc-flags.json
-.src/ttn_config.h
+src/ttn_config.h
 *.pyc

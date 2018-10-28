@@ -70,7 +70,7 @@ uint8_t SF=7;
 uint8_t r1 = esp_random();
 uint8_t r2 = esp_random();
 
-void mydisplay(char* function, char* message, char* error, int counter){
+void mydisplay(char* function, char* message, char* error, int counter, int max){
   char tmp[32];
   display.clear();
   display.drawString (0, 0, version);
@@ -79,7 +79,10 @@ void mydisplay(char* function, char* message, char* error, int counter){
   display.drawString (0, 30, error);
   sprintf(tmp, "ID 0x%.2X 0x%.2X - SF %d",r1,r2,SF);
   display.drawString (0, 40, tmp);
-  sprintf(tmp, "Message counter: %d/%d",counter);
+  if (max==-1)
+    sprintf(tmp, "Message counter: %d",counter);
+  else
+      sprintf(tmp, "Message counter: %d/%d",counter, max+1);
   display.drawString (0, 50, tmp);
   display.display ();
 }
@@ -164,7 +167,8 @@ void do_send(osjob_t* j){
       Serial.println(F("Sending uplink packet..."));
       digitalWrite(LEDPIN, HIGH);
       ++counter;
-      mydisplay("Send","Sending uplink packet...","",counter);
+      const uint8_t max_counter = round(buff_size/PAYLOAD_SIZE);
+      mydisplay("Send","Sending uplink packet...","",counter, max_counter);
     }
     // Next TX is scheduled after TX_COMPLETE event.
 }
@@ -202,6 +206,7 @@ void onEvent (ev_t ev) {
             break;
         case EV_TXCOMPLETE:
             Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+            mydisplay("Event","EV_TXCOMPLETE","",counter, -1);
             digitalWrite(LEDPIN, LOW);
             if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
@@ -214,21 +219,23 @@ void onEvent (ev_t ev) {
               if (TX_RETRASMISSION){ // Schedule next transmission
                 if (!HALT){
                   os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
-                  mydisplay("Send","Sending uplink packet...","",counter);
+                  const uint8_t max_counter = round(buff_size/PAYLOAD_SIZE);
+                  mydisplay("Send","Sending uplink packet...","",counter, max_counter);
                 } else {
                   Serial.println(F("HALT!"));
-                  mydisplay("Send","HALT","",counter);
+                  //mydisplay("Send","HALT","",counter);
                   HALT = false;
                 }
               }
             } else {
               if (!HALT){
                 os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
-                mydisplay("Send","Sending uplink packet...","",counter);
+                const uint8_t max_counter = round(buff_size/PAYLOAD_SIZE);
+                mydisplay("Send","Sending uplink packet...","",counter, max_counter);
               } else {
                 Serial.println(F("HALT!"));
                 HALT = false;
-                mydisplay("Send","HALT","",counter);
+                //mydisplay("Send","HALT","",counter);
               }
             }
 
@@ -268,8 +275,8 @@ void forceTxSingleChannelDr(_dr_eu868_t sf) {
 void setup() {
    Serial.begin(115200);
    delay(1500);   // Give time for the seral monitor to start up
-   //help();
-   Serial.println(F("Starting..."));
+   help();
+
    // Use the Blue pin to signal transmission.
    pinMode(LEDPIN,OUTPUT);
 
@@ -326,8 +333,22 @@ void setup() {
     // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
     //LMIC_setDrTxpow(DR_SF7,14);
     forceTxSingleChannelDr(DR_SF7);
+    mydisplay("Start","Waiting commands","",0,-1);
+}
 
-    mydisplay("Start","Waiting commands","",0);
+uint8_t htoi(char c){
+  if(c >= '0' && c <= '9')
+    return (c - '0');
+  else if (c >= 'A' && c <= 'F')
+    return (10 + (c - 'A'));
+  else if (c >= 'a' && c <= 'f')
+    return (10 + (c - 'a'));
+  else
+    return NULL;
+}
+
+uint8_t htoi(char c, char d){
+  return htoi(c)*16+htoi(d);
 }
 
 void loop() {
@@ -356,32 +377,42 @@ void loop() {
         uint8_t my_buff[MAX_BUFF_SIZE];
         r1 = esp_random();
         r2 = esp_random();
-        /*int num = 0;
+        uint8_t digit_num;
+        digit_num = 0;
         char digit[2];
-        int elements = 0;
-        bool valid = false;
+        int elements;
+        elements = 0;
+        bool valid;
+        valid = false;
         c = Serial.read();
-      /*  while(true){
+        while(true){
           if (c == '!') {
             valid = true;
             break;
           }
-          if ( (c >= '0' && c <= '9') || (hex >= 'A' && hex <= 'F') || (hex >= 'a' && hex <= 'f') ){
-            c
-
+          if ( (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') ){
+            digit[digit_num++] = c;
+            if (digit_num > 1){
+              digit_num = 0;
+              my_buff[elements++] = htoi(digit[0], digit[1]);
+              Serial.printf("%.2x ", my_buff[elements-1]);
+            }
           } else {
-            valid = false;
-            break;
+            if (c!=0xff) break;
           }
           c = Serial.read();
-        }*/
-      /*  if (valid) {
+       } //while
+       if (valid) {
           // copy my_buff in buff
+          for (int i=0;i<elements;i++){
+            buff[i]=my_buff[i];
+          }
           // copy my_buff_size in buff_size
+          buff_size = elements;
           Serial.println(F("OK"));
         }
         else Serial.println(F("Not OK"));
-        Serial.println(F("*===================================================================================*"));*/
+        Serial.println(F("*===================================================================================*"));
       break;
 
       case 'd'  :
@@ -414,8 +445,8 @@ void loop() {
           // Prepare upstream data transmission at the next possible time.
           LMIC_setTxData2(1, (uint8_t*)"0123456789", 10, 0);
           digitalWrite(LEDPIN, HIGH);
-          ++counter;
-          mydisplay("Start","Sending uplink packet...","",counter);
+          counter=1;
+          mydisplay("Test","Sending test packet...","",counter,0);
           Serial.println(F("OK"));
           Serial.println(F("*===================================================================================*"));
         }
@@ -459,7 +490,7 @@ void loop() {
         Serial.println(F("*===================================================================================*"));
       break;
 
-      case 'f'  :
+      case 'f' :
         v = Serial.read();
         while (v==0xff)
           v = Serial.read();

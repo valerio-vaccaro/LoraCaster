@@ -82,4 +82,4 @@ Set delay between packets in second 0-255.
 Set spreading factor between 7,8,9,10,11,12.
 
 ### R
-Generate a new random packet ID (actual 0x53 0x12)
+Generate a new random packet ID
