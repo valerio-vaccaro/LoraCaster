@@ -4,3 +4,4 @@
 .gcc-flags.json
 src/ttn_config.h
 *.pyc
+python_receiver/receiver.conf

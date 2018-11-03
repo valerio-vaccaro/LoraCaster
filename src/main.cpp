@@ -13,32 +13,18 @@
  *===================================================================================*/
 const char source_filename[] = __FILE__;
 const char compile_date[] = __DATE__ " " __TIME__;
-const char version[] = "LoraCast v.0.0.1";
+const char version[] = "LoraCast v.0.0.2";
 
 #include <Arduino.h>
-#include "lmic.h"
+#include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
 #include <SSD1306.h>
-#include "soc/efuse_reg.h"
-#include "ttn_config.h"
+#include <soc/efuse_reg.h>
 
-// --- Hardware configuration ---
-// Led
-#define LEDPIN 2
-// Display
-#define OLED_I2C_ADDR 0x3C
-#define OLED_RESET 16
-#define OLED_SDA 4
-#define OLED_SCL 15
-SSD1306 display (OLED_I2C_ADDR, OLED_SDA, OLED_SCL);
-// Lora radio pin mapping
-const lmic_pinmap lmic_pins = {
-    .nss = 18,
-    .rxtx = LMIC_UNUSED_PIN,
-    .rst = 14,
-    .dio = {26, 33, 32}  // Pins for the Heltec ESP32 Lora board/ TTGO Lora32 with 3D metal antenna
-};
+#include "ttn_config.h"
+#include "config.h"
+#include "hardware.h"
 
 // --- Software config
 // Internal buffer
@@ -65,10 +51,46 @@ bool HALT = false;
 char TTN_response[30];
 uint8_t PAYLOAD_SIZE = 100;
 bool LAST_TX=false;
-uint8_t SF=7;
+int SF=7;
 
 uint8_t r1 = esp_random();
 uint8_t r2 = esp_random();
+
+SSD1306 display (OLED_I2C_ADDR, OLED_SDA, OLED_SCL);
+
+// Lora radio pin mapping
+const lmic_pinmap lmic_pins = {
+    .nss = 18,
+    .rxtx = LMIC_UNUSED_PIN,
+    .rst = 14,
+    .dio = {26, 33, 32}  // Pins for the Heltec ESP32 Lora board/ TTGO Lora32 with 3D metal antenna
+};
+
+void saveConfigAll(){
+  int conf_b = PAYLOAD_SIZE;
+  int conf_r = TX_RETRASMISSION;
+  int conf_w = TX_INTERVAL;
+  int conf_f = SF;
+  if (!saveConfig(conf_b, conf_r, conf_w, conf_f)) {
+    Serial.println("Failed to save config");
+  } else {
+    Serial.println("Config saved");
+  }
+}
+
+void loadConfigAll(){
+  int conf_b, conf_r, conf_w, conf_f;
+  if (!loadConfig(&conf_b, &conf_r, &conf_w, &conf_f)) {
+    Serial.println("Failed to load config");
+  } else {
+    Serial.println("Config loaded");
+  }
+  if(conf_r==0) TX_RETRASMISSION=false;
+  else TX_RETRASMISSION=true;
+  SF = conf_f;
+  TX_INTERVAL = conf_w;
+  PAYLOAD_SIZE = conf_b;
+}
 
 void mydisplay(char* function, char* message, char* error, int counter, int max){
   char tmp[32];
@@ -99,7 +121,7 @@ void help(){
   "                   LoraCast, the Swiss Army Knife of LoraWan\n"
   "*===================================================================================*\n";
   Serial.print(banner);
-  Serial.print(version);Serial.print(F(" build on "));Serial.println(compile_date);
+  Serial.print(F("                 "));Serial.print(version);Serial.print(F(" build on "));Serial.println(compile_date);
   Serial.println(F("*===================================================================================*"));
   Serial.println(F("General commands:"));
   Serial.println(F("   h - shows this help"));
@@ -113,7 +135,7 @@ void help(){
   Serial.println(F("Advanced commands:"));
   Serial.println(F("   t - sent a Test message with content 0123456789 (ASCII)"));
   Serial.println(F("   c - shows LoraWan/TTN configuration"));
-  Serial.print(  F("   b[]! - set message dimension in byte 0-"));Serial.print(MAX_BUFF_SIZE);Serial.print(F(" (actual "));Serial.print(BUFF_SIZE);Serial.println(F(") "));
+  Serial.print(  F("   b[]! - set message dimension in byte 0-100"));;Serial.print(F(" (actual "));Serial.print(PAYLOAD_SIZE);Serial.println(F(") "));
   Serial.print(  F("   r - toggle retransmission (actual "));Serial.print(TX_RETRASMISSION);Serial.println(F(")"));
   Serial.print(  F("   w[]! - set delay betweet packets in second 0-255 (actual "));Serial.print(TX_INTERVAL);Serial.println(F(")"));
   Serial.print(  F("   f[] - set spreading factor (nn) between 7,8,9,10,11,12 (actual "));Serial.print(SF);Serial.println(F(")"));
@@ -132,7 +154,7 @@ void PrintHex8(uint8_t *data, uint8_t length){
 }
 
 void do_send(osjob_t* j){
-    uint8_t message[11+PAYLOAD_SIZE] = "LWC*00*00*0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    uint8_t message[11+PAYLOAD_SIZE] = "LWC*00*00*";
     const uint8_t max_counter = round(buff_size/PAYLOAD_SIZE);
     if (counter > max_counter){
       counter = 0;
@@ -144,7 +166,6 @@ void do_send(osjob_t* j){
     if(message[7]==message[8]) LAST_TX = true;
     else LAST_TX = false;
 
-    Serial.println(F("-------------"));
     Serial.print(F("Counter ")); Serial.print(counter);
     int remaining = buff_size - (counter*PAYLOAD_SIZE);
     Serial.print(F(" remaining ")); Serial.println(remaining);
@@ -275,6 +296,14 @@ void forceTxSingleChannelDr(_dr_eu868_t sf) {
 void setup() {
    Serial.begin(115200);
    delay(1500);   // Give time for the seral monitor to start up
+
+   if(!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)){
+    Serial.println("SPIFFS Mount Failed");
+    return;
+   }
+
+   loadConfigAll();
+
    help();
 
    // Use the Blue pin to signal transmission.
@@ -361,18 +390,21 @@ void loop() {
       break;
 
       case 'v'  :
+        Serial.println(c);
         VERBOSE = !VERBOSE;
         Serial.println(F("OK"));
         Serial.println(F("*===================================================================================*"));
       break;
 
       case 'l' :
+        Serial.println(c);
         digitalWrite(LEDPIN, !digitalRead(LEDPIN));
         Serial.println(F("OK"));
         Serial.println(F("*===================================================================================*"));
       break;
 
       case 'p'  :
+        Serial.print(c);
         // payload
         uint8_t my_buff[MAX_BUFF_SIZE];
         r1 = esp_random();
@@ -387,10 +419,12 @@ void loop() {
         c = Serial.read();
         while(true){
           if (c == '!') {
+            Serial.print(c);
             valid = true;
             break;
           }
           if ( (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') ){
+            Serial.print(c);
             digit[digit_num++] = c;
             if (digit_num > 1){
               digit_num = 0;
@@ -402,6 +436,7 @@ void loop() {
           }
           c = Serial.read();
        } //while
+       Serial.println();
        if (valid) {
           // copy my_buff in buff
           for (int i=0;i<elements;i++){
@@ -416,12 +451,14 @@ void loop() {
       break;
 
       case 'd'  :
+        Serial.println(c);
         PrintHex8(buff, buff_size);Serial.println("");
         Serial.println(F("OK"));
         Serial.println(F("*===================================================================================*"));
       break;
 
       case 'S'  :
+        Serial.println(c);
         HALT = false;
         counter = -1;
         do_send(&sendjob);
@@ -430,12 +467,14 @@ void loop() {
       break;
 
       case 'H'  :
+        Serial.println(c);
         HALT = true;
         Serial.println(F("OK"));
         Serial.println(F("*===================================================================================*"));
       break;
 
       case 't'  :
+        Serial.println(c);
         HALT = true;
         // Check if there is not a current TX/RX job running
         if (LMIC.opmode & OP_TXRXPEND) {
@@ -453,6 +492,7 @@ void loop() {
       break;
 
       case 'c'  :
+        Serial.println(c);
         Serial.print(F("NWKSKEY: "));PrintHex8(NWKSKEY, 16);Serial.println("");
         Serial.print(F("APPSKEY: "));PrintHex8(APPSKEY, 16);Serial.println("");
         Serial.print(F("DEVADDR: "));PrintHex8((uint8_t *)DEVADDR, 4);Serial.println("");
@@ -461,29 +501,103 @@ void loop() {
       break;
 
       case 'b'  :
-        Serial.println(F("OK"));
+        Serial.print(c);
+        int buffCount;
+        buffCount = 0;
+        int num;
+        char bufNum[5];
+        boolean validNum;
+        validNum = false;
+        c = Serial.read();
+        while(true){
+          if (c == '!') {
+            Serial.print(c);
+            validNum = true;
+            break;
+          }
+          if (c >= '0' && c <= '9'){
+            Serial.print(c);
+            bufNum[buffCount] = c;
+            buffCount++;
+            if (buffCount > 3){
+               Serial.println(F("ERROR: number too mutch long!"));
+               break;
+            }
+          } else {
+            if (c!=0xff) {
+              Serial.println(F("ERROR: wrong char!"));
+              break;
+            }
+          }
+          c = Serial.read();
+        } //while
+        Serial.println();
+        bufNum[buffCount]='\0';
+        if (validNum){
+          num = atoi(bufNum);
+          if (num > 100){
+             Serial.println(F("ERROR: number too big!"));
+             break;
+          } else{
+             PAYLOAD_SIZE = num;
+             Serial.println(F("OK"));
+             saveConfigAll();
+           }
+        }
         Serial.println(F("*===================================================================================*"));
       break;
 
       case 'r'  :
+        Serial.println(c);
         TX_RETRASMISSION = !TX_RETRASMISSION;
         Serial.println(F("OK"));
+        saveConfigAll();
         Serial.println(F("*===================================================================================*"));
       break;
 
       case 'w'  :
-        v = Serial.read();
-        while (v==0xff)
-          v = Serial.read();
-        switch(v){
-          case '!':
+        Serial.print(c);
+        buffCount = 0;
+        validNum = false;
+        c = Serial.read();
+        while(true){
+          if (c == '!') {
+            validNum = true;
             break;
+          }
+          if (c >= '0' && c <= '9'){
+            bufNum[buffCount] = c;
+            buffCount++;
+            if (buffCount > 3){
+               Serial.println(F("ERROR: number too mutch long!"));
+               break;
+            }
+          } else {
+            if (c!=0xff) {
+              Serial.println(F("ERROR: wrong char!"));
+              break;
+            }
+          }
+          c = Serial.read();
+        } //while
+        Serial.println();
+        bufNum[buffCount]='\0';
+        if (validNum){
+          num = atoi(bufNum);
+          if (num > 100){
+             Serial.println(F("ERROR: number too big!"));
+             break;
+          } else {
+             TX_INTERVAL = num;
+             Serial.println(F("OK"));
+             saveConfigAll();
+           }
         }
-        Serial.println(F("OK"));
         Serial.println(F("*===================================================================================*"));
       break;
 
       case 'R' :
+        Serial.println(c);
         r1 = esp_random();
         r2 = esp_random();
         Serial.println(F("OK"));
@@ -491,21 +605,26 @@ void loop() {
       break;
 
       case 'f' :
+        Serial.print(c);
         v = Serial.read();
         while (v==0xff)
           v = Serial.read();
+        Serial.print(v);
         switch (v){
           case '7':
+              Serial.println();
               Serial.println(F("OK"));
               forceTxSingleChannelDr(DR_SF7);
               SF=7;
           break;
           case '8':
+              Serial.println();
               Serial.println(F("OK"));
               forceTxSingleChannelDr(DR_SF8);
               SF=8;
           break;
           case '9':
+              Serial.println();
               Serial.println(F("OK"));
               forceTxSingleChannelDr(DR_SF9);
               SF=9;
@@ -514,6 +633,8 @@ void loop() {
               char v2 = Serial.read();
               while (v2==0xff)
                 v2 = Serial.read();
+              Serial.print(v2);
+              Serial.println();
               switch (v2) {
                 case '0':
                   forceTxSingleChannelDr(DR_SF10);
@@ -535,6 +656,7 @@ void loop() {
               }
           break;
         }
+        saveConfigAll();
         Serial.println(F("*===================================================================================*"));
       break;
 
