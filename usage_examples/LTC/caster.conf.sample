@@ -1,0 +1,9 @@
+[LTC]
+host: localhost
+port: 19332
+username: user
+password: password
+
+[TTN]
+app_id:
+access_key:

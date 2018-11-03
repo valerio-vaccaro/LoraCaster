@@ -1,4 +1,6 @@
 import configparser
+import sys
+import configparser
 import time
 import ttn
 import base64
@@ -72,8 +74,11 @@ while(True):
                     messages[dev_id].pop(message_id)
                     #print(messages[dev_id])
                     print(buff)
+                    file = open('received.txt','w')
+                    file.write(bytearray.fromhex(buff).decode('utf-8'))
+                    file.close()
     finally:
         lock.release()
-    time.sleep(1)
+    time.sleep(10)
 
 mqtt_client.close()

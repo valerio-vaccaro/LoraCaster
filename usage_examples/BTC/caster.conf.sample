@@ -1,0 +1,9 @@
+[BTC]
+host: localhost
+port: 18332
+username: user
+password: password
+
+[TTN]
+app_id:
+access_key:

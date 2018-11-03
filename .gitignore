@@ -4,4 +4,7 @@
 .gcc-flags.json
 src/ttn_config.h
 *.pyc
-python_receiver/receiver.conf
+python_receiver/caster.conf
+usage_examples/BTC/caster.conf
+usage_examples/LTC/caster.conf
+usage_examples/file/caster.conf

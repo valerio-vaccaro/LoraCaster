@@ -409,7 +409,7 @@ void loop() {
         uint8_t my_buff[MAX_BUFF_SIZE];
         r1 = esp_random();
         r2 = esp_random();
-        uint8_t digit_num;
+        int digit_num;
         digit_num = 0;
         char digit[2];
         int elements;
@@ -429,10 +429,11 @@ void loop() {
             if (digit_num > 1){
               digit_num = 0;
               my_buff[elements++] = htoi(digit[0], digit[1]);
-              Serial.printf("%.2x ", my_buff[elements-1]);
+              //Serial.printf("%.2x", my_buff[elements-1]);
             }
           } else {
-            if (c!=0xff) break;
+            delay(100);
+            //if (c!=0xff) break;
           }
           c = Serial.read();
        } //while

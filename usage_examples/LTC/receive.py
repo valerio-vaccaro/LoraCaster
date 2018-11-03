@@ -1,4 +1,7 @@
 import configparser
+from bitcoin_rpc_class import RPCHost
+import sys
+import configparser
 import time
 import ttn
 import base64
@@ -10,6 +13,14 @@ config = configparser.RawConfigParser()
 config.read(configFile)
 app_id = config.get('TTN', 'app_id')
 access_key = config.get('TTN', 'access_key')
+rpcHost = config.get('LTC', 'host')
+rpcPort = config.get('LTC', 'port')
+rpcUser = config.get('LTC', 'username')
+rpcPassword = config.get('LTC', 'password')
+address = config.get('LTC', 'address')
+serverURL = 'http://' + rpcUser + ':' + rpcPassword + '@'+rpcHost+':' + str(rpcPort)
+
+host = RPCHost(serverURL)
 
 messages = {}
 
@@ -72,8 +83,14 @@ while(True):
                     messages[dev_id].pop(message_id)
                     #print(messages[dev_id])
                     print(buff)
+                    tx = buff.strip()
+                    print(tx)
+                    res = host.call('decoderawtransaction', tx, True)
+                    print(res)
+                    res = host.call('sendrawtransaction', tx)
+                    print(res)
     finally:
         lock.release()
-    time.sleep(1)
+    time.sleep(10)
 
 mqtt_client.close()
