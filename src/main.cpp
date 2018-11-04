@@ -133,12 +133,12 @@ void help(){
   Serial.println(F("   S - start transmission"));
   Serial.println(F("   H - halt transmission"));
   Serial.println(F("Advanced commands:"));
-  Serial.println(F("   t - sent a Test message with content 0123456789 (ASCII)"));
+  Serial.println(F("   t - send a Test message with content 0123456789 (ASCII)"));
   Serial.println(F("   c - shows LoraWan/TTN configuration"));
   Serial.print(  F("   b[]! - set message dimension in byte 0-100"));;Serial.print(F(" (actual "));Serial.print(PAYLOAD_SIZE);Serial.println(F(") "));
   Serial.print(  F("   r - toggle retransmission (actual "));Serial.print(TX_RETRASMISSION);Serial.println(F(")"));
   Serial.print(  F("   w[]! - set delay betweet packets in second 0-255 (actual "));Serial.print(TX_INTERVAL);Serial.println(F(")"));
-  Serial.print(  F("   f[] - set spreading factor (nn) between 7,8,9,10,11,12 (actual "));Serial.print(SF);Serial.println(F(")"));
+  Serial.print(  F("   f[] - set spreading factor between 7,8,9,10,11,12 (actual "));Serial.print(SF);Serial.println(F(")"));
   char tmp[16];
   sprintf(tmp, "0x%.2X 0x%.2X",r1,r2);
   Serial.print(  F("   R - generate a new random packet ID (actual "));Serial.print(tmp);Serial.println(F(")"));
