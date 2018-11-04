@@ -60,24 +60,24 @@ Advanced commands:
 ## Communication protocol
 The payload is exploded in n messages based on message maximum dimension. Every message has the following format:
 
-- LWC - magic number (3 bytes )
-- * - separator (1 byte)
-- 00 - packet ID (2 bytes) same ID for the same parts of the same payload
-- * - separator (1 byte)
-- 0 - message number (1 byte) progressive message counter
-- 0 - total messages (1 byte) number of total messages needed to have the complete message
-- * - separator (1 byte)
-- ... - informative content (1-100 bytes) part of the complete message to be transmitted
+1. LWC - magic number (3 bytes )
+2. &ast; - separator (1 byte)
+3. 00 - packet ID (2 bytes) same ID for the same parts of the same payload
+4. &ast; - separator (1 byte)
+5. 0 - message number (1 byte) progressive message counter
+6. 0 - total messages (1 byte) number of total messages needed to have the complete message
+7. &ast; - separator (1 byte)
+8. ... - informative content (1-100 bytes) part of the complete message to be transmitted
 
 ## Available boards
 The firmware is actually tested on the following boards:
 
 - TTGO ESP32 Lora (with or without OLED)
-- HelTec WiFi Lora 32 - consider [v.2](http://www.heltec.cn/project/wifi-lora-32/?lang=en)
+- HelTec WiFi Lora 32 v.1 - consider to buy a [v.2](http://www.heltec.cn/project/wifi-lora-32/?lang=en)
 
 ## Usage examples
-Some examples are provided in order to use LoraCast in some real scenarios.
+Some examples are provided in order to use LoraCast in some real scenarios:
 
-- File - move a file in the memory of the board, send in via Lora and receive with provided python script.
-- BTC - generate a new transaction (via RPC), send it via Lora, receive the complete transaction, check and broadcast it (using the RPC available from a core node) - Require a Bitcoin core working node.
-- LTC - generate a new transaction (via RPC), send it via Lora, receive the complete transaction, check and broadcast it (using the RPC available from a core node) - Require a Litecoin working node.
+- [File](https://github.com/valerio-vaccaro/LoraCaster/tree/master/usage_examples/File) - move a file in the memory of the board, send in via Lora and receive with provided python script.
+- [BTC](https://github.com/valerio-vaccaro/LoraCaster/tree/master/usage_examples/BTC) - generate a new transaction (via RPC), send it via Lora, receive the complete transaction, check and broadcast it (using the RPC available from a core node) - Require a Bitcoin core working node.
+- [LTC](https://github.com/valerio-vaccaro/LoraCaster/tree/master/usage_examples/LTC) - generate a new transaction (via RPC), send it via Lora, receive the complete transaction, check and broadcast it (using the RPC available from a core node) - Require a Litecoin working node.
