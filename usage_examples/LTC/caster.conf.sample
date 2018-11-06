@@ -3,6 +3,7 @@ host: localhost
 port: 19332
 username: user
 password: password
+address:
 
 [TTN]
 app_id:
