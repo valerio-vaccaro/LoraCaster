@@ -3,6 +3,7 @@ host: localhost
 port: 18332
 username: user
 password: password
+wallet: wallet.dat
 address:
 
 [TTN]
