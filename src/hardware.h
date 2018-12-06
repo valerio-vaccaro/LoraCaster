@@ -6,8 +6,8 @@
 
 
 // Led
-//#define LEDPIN 2 // TTGO
-#define LEDPIN 25  // HELTEC
+#define LEDPIN 2 // TTGO
+//#define LEDPIN 25  // HELTEC
 
 // Display
 #define OLED_I2C_ADDR 0x3C
