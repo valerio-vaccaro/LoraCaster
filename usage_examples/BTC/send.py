@@ -10,7 +10,9 @@ rpcPort = config.get('BTC', 'port')
 rpcUser = config.get('BTC', 'username')
 rpcPassword = config.get('BTC', 'password')
 address = config.get('BTC', 'address')
-serverURL = 'http://' + rpcUser + ':' + rpcPassword + '@'+rpcHost+':' + str(rpcPort)
+rpcWallet = config.get('BTC', 'wallet')
+serverURL = 'http://' + rpcUser + ':' + rpcPassword + '@'+rpcHost+':' + str(rpcPort)+'/wallet/' + rpcWallet
+#serverURL = 'http://' + rpcUser + ':' + rpcPassword + '@'+rpcHost+':' + str(rpcPort)
 
 host = RPCHost(serverURL)
 

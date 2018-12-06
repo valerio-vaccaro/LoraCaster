@@ -18,7 +18,9 @@ rpcPort = config.get('LTC', 'port')
 rpcUser = config.get('LTC', 'username')
 rpcPassword = config.get('LTC', 'password')
 address = config.get('LTC', 'address')
-serverURL = 'http://' + rpcUser + ':' + rpcPassword + '@'+rpcHost+':' + str(rpcPort)
+rpcWallet = config.get('LTC', 'wallet')
+serverURL = 'http://' + rpcUser + ':' + rpcPassword + '@'+rpcHost+':' + str(rpcPort)+'/wallet/' + rpcWallet
+#serverURL = 'http://' + rpcUser + ':' + rpcPassword + '@'+rpcHost+':' + str(rpcPort)
 
 host = RPCHost(serverURL)
 
