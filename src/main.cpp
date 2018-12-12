@@ -13,7 +13,7 @@
  *===================================================================================*/
 const char source_filename[] = __FILE__;
 const char compile_date[] = __DATE__ " " __TIME__;
-const char version[] = "LoraCast v.0.0.3";
+const char version[] = "LoraCast v.0.0.4";
 
 #include <Arduino.h>
 #include <lmic.h>
@@ -28,10 +28,11 @@ const char version[] = "LoraCast v.0.0.3";
 
 // --- Software config
 // Internal buffer
-#define MAX_BUFF_SIZE 90*1024
-int BUFF_SIZE = MAX_BUFF_SIZE;
+#define MAX_BUFF_SIZE 4*1024
+//int BUFF_SIZE = MAX_BUFF_SIZE;
 static uint8_t buff[MAX_BUFF_SIZE] = {0x00};
 int buff_size = 1;
+//int buff_size = 4;
 
 uint8_t counter = 0;
 static osjob_t sendjob;
@@ -39,6 +40,8 @@ uint8_t TX_INTERVAL = 0;
 bool TX_RETRASMISSION = false;
 bool VERBOSE = false;
 bool HALT = false;
+bool CONTINUOSLY = false;
+uint8_t CONTINUOSLY_NO = 0;
 char TTN_response[30];
 uint8_t PAYLOAD_SIZE = 100;
 bool LAST_TX=false;
@@ -126,6 +129,7 @@ void help(){
   Serial.println(F("Advanced commands:"));
   Serial.println(F("   t - send a Test message with content 0123456789 (ASCII)"));
   Serial.println(F("   c - shows LoraWan/TTN configuration"));
+  Serial.println(F("   C - send continuosly messages, stop with H"));
   Serial.print(  F("   b[]! - set message dimension in byte 0-100"));;Serial.print(F(" (actual "));Serial.print(PAYLOAD_SIZE);Serial.println(F(") "));
   Serial.print(  F("   r - toggle retransmission (actual "));Serial.print(TX_RETRASMISSION);Serial.println(F(")"));
   Serial.print(  F("   w[]! - set delay betweet packets in second 0-255 (actual "));Serial.print(TX_INTERVAL);Serial.println(F(")"));
@@ -142,6 +146,21 @@ void PrintHex8(uint8_t *data, uint8_t length){
       sprintf(tmp, "0x%.2X",data[i]);
       Serial.print(tmp); Serial.print(" ");
   }
+}
+
+void do_send_cont(osjob_t* j){
+    // Check if there is not a current TX/RX job running
+    if (LMIC.opmode & OP_TXRXPEND) {
+      Serial.println(F("OP_TXRXPEND, not sending"));
+    } else {
+      // Prepare upstream data transmission at the next possible time.
+      LMIC_setTxData2(1, &CONTINUOSLY_NO, 1, 0);
+      Serial.println(F("Sending uplink packet..."));
+      digitalWrite(LEDPIN, HIGH);
+      ++CONTINUOSLY_NO;
+      mydisplay("Send","Sending CONTINUOSLY packet...","",CONTINUOSLY_NO, 0);
+    }
+    // Next TX is scheduled after TX_COMPLETE event.
 }
 
 void do_send(osjob_t* j){
@@ -227,27 +246,40 @@ void onEvent (ev_t ev) {
               Serial.println(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
             }
-            if (LAST_TX){
-              if (TX_RETRASMISSION){ // Schedule next transmission
+            //send new messages
+            if (CONTINUOSLY){
+              if (!HALT){
+                os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send_cont);
+              } else {
+                Serial.println(F("HALT!"));
+                //mydisplay("Send","HALT","",counter);
+                HALT = false;
+                CONTINUOSLY = false;
+              }
+            }
+            else{
+              if (LAST_TX){
+                if (TX_RETRASMISSION){ // Schedule next transmission
+                  if (!HALT){
+                    os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
+                    const uint8_t max_counter = round(buff_size/PAYLOAD_SIZE);
+                    mydisplay("Send","Sending uplink packet...","",counter, max_counter);
+                  } else {
+                    Serial.println(F("HALT!"));
+                    //mydisplay("Send","HALT","",counter);
+                    HALT = false;
+                  }
+                }
+              } else {
                 if (!HALT){
                   os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
                   const uint8_t max_counter = round(buff_size/PAYLOAD_SIZE);
                   mydisplay("Send","Sending uplink packet...","",counter, max_counter);
                 } else {
                   Serial.println(F("HALT!"));
-                  //mydisplay("Send","HALT","",counter);
                   HALT = false;
+                  //mydisplay("Send","HALT","",counter);
                 }
-              }
-            } else {
-              if (!HALT){
-                os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
-                const uint8_t max_counter = round(buff_size/PAYLOAD_SIZE);
-                mydisplay("Send","Sending uplink packet...","",counter, max_counter);
-              } else {
-                Serial.println(F("HALT!"));
-                HALT = false;
-                //mydisplay("Send","HALT","",counter);
               }
             }
 
@@ -488,6 +520,15 @@ void loop() {
         Serial.print(F("NWKSKEY: "));PrintHex8(NWKSKEY, 16);Serial.println("");
         Serial.print(F("APPSKEY: "));PrintHex8(APPSKEY, 16);Serial.println("");
         Serial.print(F("DEVADDR: "));PrintHex8((uint8_t *)DEVADDR, 4);Serial.println("");
+        Serial.println(F("OK"));
+        Serial.println(F("*===================================================================================*"));
+      break;
+
+      case 'C'  :
+        Serial.println(c);
+        CONTINUOSLY = true;
+        CONTINUOSLY_NO = 0;
+        os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send_cont);
         Serial.println(F("OK"));
         Serial.println(F("*===================================================================================*"));
       break;
