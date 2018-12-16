@@ -4,16 +4,16 @@
   [[[     ,[[     [[,[[[,/[[['  ,[[ '[[,  [[[         ,[[ '[[, '[==/[[[[,    [[
   $$'     $$$,     $$$$$$$$$c   c$$$cc$$$c $$$        c$$$cc$$$c  '''    $    $$
  o88oo,.__"888,_ _,88P888b "88bo,888   888,`88bo,__,o, 888   888,88b    dP    88,
- """"YUMMM  "YMMMMMP" MMMM   "W" YMM   ""`   "YUMMMMMP"YMM   ""`  "YMmMY"     MMM
+ """"YUMMM  "YMMMMMP" MMMM   "W" YMM   ""`   "YUMMMMMP"YMM   ""`  "YMmMY"     MMM   ER
  *===================================================================================*
-  LoraCast - broadcast messages on TTN LoraWan network
+  LoraCaster - broadcast messages on TTN LoraWan network
    MIT License - Copyright (c) 2018 Valerio Vaccaro
    Based on https://github.com/gonzalocasas/arduino-uno-dragino-lorawan/blob/master/LICENSE
    Based on examples from https://github.com/matthijskooijman/arduino-lmic
  *===================================================================================*/
 const char source_filename[] = __FILE__;
 const char compile_date[] = __DATE__ " " __TIME__;
-const char version[] = "LoraCast v.0.0.4";
+const char version[] = "LoraCaster v.0.0.5";
 
 #include <Arduino.h>
 #include <lmic.h>
@@ -111,8 +111,8 @@ void help(){
   " [[[     ,[[     \[[,[[[,/[[['  ,[[ '[[,  [[[         ,[[ '[[, '[==/[[[[,    [[     \n"
   " $$'     $$$,     $$$$$$$$$c   c$$$cc$$$c $$$        c$$$cc$$$c  '''    $    $$     \n"
   "o88oo,.__\"888,_ _,88P888b \"88bo,888   888,`88bo,__,o, 888   888,88b    dP    88,    \n"
-  "\"\"\"\"YUMMM  \"YMMMMMP\" MMMM   \"W\" YMM   \"\"`   \"YUMMMMMP\"YMM   \"\"`  \"YMmMY\"     MMM    \n"
-  "                   LoraCast, the Swiss Army Knife of LoraWan\n"
+  "\"\"\"\"YUMMM  \"YMMMMMP\" MMMM   \"W\" YMM   \"\"`   \"YUMMMMMP\"YMM   \"\"`  \"YMmMY\"     MMM   ER\n"
+  "                   LoraCaster, the Swiss Army Knife of LoraWan\n"
   "*===================================================================================*\n";
   Serial.print(banner);
   Serial.print(F("                 "));Serial.print(version);Serial.print(F(" build on "));Serial.println(compile_date);

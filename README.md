@@ -1,5 +1,5 @@
-# LoraCast, the Swiss Army Knife of LoraWan
-LoraCast, the Swiss Army Knife of LoraWan, is a LoraWan TTN compatible firmware for the cheap ESP32/Lora boards.
+# LoraCaster, the Swiss Army Knife of LoraWan
+LoraCaster, the Swiss Army Knife of LoraWan, is a LoraWan TTN compatible firmware for the cheap ESP32/Lora boards.
 
 ```
 *===================================================================================*
@@ -8,10 +8,10 @@ LoraCast, the Swiss Army Knife of LoraWan, is a LoraWan TTN compatible firmware 
  [[[     ,[[     [[,[[[,/[[['  ,[[ '[[,  [[[         ,[[ '[[, '[==/[[[[,    [[
  $$'     $$$,     $$$$$$$$$c   c$$$cc$$$c $$$        c$$$cc$$$c  '''    $    $$
 o88oo,.__"888,_ _,88P888b "88bo,888   888,`88bo,__,o, 888   888,88b    dP    88,
-""""YUMMM  "YMMMMMP" MMMM   "W" YMM   ""`   "YUMMMMMP"YMM   ""`  "YMmMY"     MMM
-                   LoraCast, the Swiss Army Knife of LoraWan
+""""YUMMM  "YMMMMMP" MMMM   "W" YMM   ""`   "YUMMMMMP"YMM   ""`  "YMmMY"     MMM   ER
+                   LoraCaster, the Swiss Army Knife of LoraWan
 *===================================================================================*
-                 LoraCast v.0.0.1 build on Oct 28 2018 21:26:41
+                 LoraCaster v.0.0.1 build on Oct 28 2018 21:26:41
 *===================================================================================*
 
 General commands:
